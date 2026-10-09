@@ -20,7 +20,7 @@
 - [x] 第二步：建立 Supabase 資料庫（資料表：`supabase/schema.sql`）
 - [x] 第三步：完成報名及取消功能
 - [ ] 第四步：完成簡單管理後台
-- [ ] 第五步：串接 LINE 自動接收訊息及回覆
+- [x] 第五步：串接 LINE 自動接收訊息及回覆（網址：`/api/line/webhook`）
 - [ ] 第六步：部署到 Vercel
 
 ## 專案資料夾說明
@@ -31,6 +31,7 @@ app/
   page.js            首頁（目前顯示場館資料與進度）
   globals.css        網站樣式
   api/health/        健康檢查網址 /api/health
+  api/line/webhook/  接收 LINE 訊息的網址
 lib/
   venue.js           場館基本資料（名稱、地址、官方 LINE）
   supabase.js        連線到 Supabase 資料庫
@@ -40,6 +41,7 @@ lib/
   sessions.js        依照使用者說的時段挑出場次
   registrations.js   報名、取消、名單（機器人和後台共用）
   bot.js             機器人對話流程（資訊不足會先詢問）
+  line.js            LINE 簽章驗證、取得名稱、回覆訊息
 test/                自動測試（npm test）
 supabase/
   schema.sql         資料庫結構（貼到 Supabase SQL Editor 執行）
