@@ -11,10 +11,16 @@ export async function POST(request) {
   const signature = request.headers.get("x-line-signature");
 
   if (!verifySignature(rawBody, signature, process.env.LINE_CHANNEL_SECRET)) {
+    // 常見原因：Vercel 的 LINE_CHANNEL_SECRET 不對，或改了之後沒有 Redeploy
+    console.warn("[webhook] 簽章驗證失敗", {
+      hasSignature: Boolean(signature),
+      hasSecret: Boolean(process.env.LINE_CHANNEL_SECRET),
+    });
     return new Response("簽章錯誤", { status: 401 });
   }
 
   const { events = [] } = JSON.parse(rawBody);
+  console.log("[webhook] 收到事件", events.map((e) => `${e.type}/${e.message?.type ?? "-"}`).join(", ") || "（無，可能是 Verify）");
   await Promise.all(events.map(handleEvent));
 
   // 一律回 200，讓 LINE 知道我們收到了
