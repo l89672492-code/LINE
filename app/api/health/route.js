@@ -1,21 +1,19 @@
 import { VENUE } from "@/lib/venue";
-import { getSupabase } from "@/lib/supabase";
+import { bookingApi } from "@/lib/booking";
+import { taipeiNow } from "@/lib/dates";
 
 export const dynamic = "force-dynamic";
 
 // 健康檢查：打開 /api/health
 // - ok: true 代表程式有正常運作
-// - database 顯示資料庫是否連得上、目前有幾個場次
+// - booking 顯示訂場網站的資料是否查得到
 export async function GET() {
-  let database;
+  let booking;
   try {
-    const { count, error } = await getSupabase()
-      .from("sessions")
-      .select("*", { count: "exact", head: true });
-    database = error ? `連線失敗：${error.message}` : `已連線，共 ${count} 個場次`;
+    const rows = await bookingApi.getDayAvailability(taipeiNow().date);
+    booking = `已連線，今天共 ${rows.length} 筆場地時段`;
   } catch (e) {
-    database = e.message;
+    booking = e.message;
   }
-
-  return Response.json({ ok: true, venue: VENUE.name, database });
+  return Response.json({ ok: true, venue: VENUE.name, booking });
 }

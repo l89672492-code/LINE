@@ -1,71 +1,58 @@
-# 🏸 勁丰羽球館 LINE 零打報名機器人
+# 🏸 勁丰羽球館 LINE 租場地機器人
 
 - 場館：勁丰羽球館
 - 地址：新北市鶯歌區環河路60-1號
 - 官方 LINE：@301jueln
+- 訂場網站：https://jingfeng-booking.vercel.app （另一個專案 `jingfeng-booking`）
+
+客人在 LINE 問空場、價格，機器人即時查訂場網站的資料回覆；要預約時，給客人訂場網站的連結。
+機器人只用訂場網站的「公開金鑰」讀取資料，不會新增或修改任何預約。
 
 ## 使用技術
 
 | 項目 | 用途 |
 | --- | --- |
-| Next.js | 網站及 API 程式（管理後台、接收 LINE 訊息） |
-| Supabase | 儲存報名資料的資料庫 |
+| Next.js | 接收 LINE 訊息的程式 |
 | LINE Messaging API | 接收和回覆 LINE 訊息 |
-| Claude API（可選） | 辨識比較口語的報名文字 |
+| 訂場網站的資料庫（Supabase） | 查詢空場、價格（只讀） |
 | Vercel | 把程式放到網路上（部署） |
 
-## 開發進度
+## 機器人會回什麼
 
-- [x] 第一步：建立專案
-- [x] 第二步：建立 Supabase 資料庫（資料表：`supabase/schema.sql`）
-- [x] 第三步：完成報名及取消功能
-- [ ] 第四步：完成簡單管理後台
-- [x] 第五步：串接 LINE 自動接收訊息及回覆（網址：`/api/line/webhook`）
-- [ ] 第六步：部署到 Vercel
+| 客人傳 | 機器人回 |
+| --- | --- |
+| 明天空場、週六晚上有場嗎、10/15 | 當天各時段還有幾面場、每小時價格 |
+| 10/15 7點到9點 | 這段時間哪幾面場整段都空著、每面多少錢，加上當天空場狀況 |
+| 價格、多少錢 | 平日／假日價格表 |
+| 查詢預約、取消 | 查詢／取消預約的網址 |
+| 我想租場地（沒說日期） | 詢問日期，附上訂場網址 |
+| 說明 | 使用方式 |
+| 其他閒聊 | 不回覆 |
+
+價格、休館日、營業時間都在**訂場網站後台**修改，機器人會自動跟著變。
 
 ## 專案資料夾說明
 
 ```
 app/
-  layout.js          網站共用外框
-  page.js            首頁（目前顯示場館資料與進度）
-  globals.css        網站樣式
-  api/health/        健康檢查網址 /api/health
+  page.js            首頁
+  api/health/        健康檢查 /api/health（確認查得到訂場網站資料）
   api/line/webhook/  接收 LINE 訊息的網址
 lib/
-  venue.js           場館基本資料（名稱、地址、官方 LINE）
-  supabase.js        連線到 Supabase 資料庫
-  repo.js            資料庫的讀寫動作
-  dates.js           日期換算（今天、週五、下週一…，台灣時間）
-  parser.js          看懂報名文字（日期、時段、姓名、人數）
-  sessions.js        依照使用者說的時段挑出場次
-  registrations.js   報名、取消、名單（機器人和後台共用）
-  roster.js          整週名單的排版
-  bot.js             機器人對話流程（資訊不足會先詢問）
-  line.js            LINE 簽章驗證、取得名稱、回覆訊息
+  venue.js           場館資料、訂場網站網址
+  booking.js         向訂場網站查空場、價格
+  rental.js          機器人的回覆內容
+  parser.js          看懂日期、時間（今天、週五、7點到9點…）
+  dates.js           日期換算（台灣時間）
+  line.js            LINE 簽章驗證、回覆訊息
 test/                自動測試（npm test）
-supabase/
-  schema.sql         資料庫結構（貼到 Supabase SQL Editor 執行）
-.env.example         金鑰設定範本（之後步驟會教你填）
-package.json         專案使用的套件清單
 ```
 
-## 在自己電腦上執行（可選）
+## Vercel 環境變數
 
-不在自己電腦上跑也沒關係，最後部署到 Vercel 就能使用。若想先在電腦看看：
+| 名稱 | 哪裡拿 |
+| --- | --- |
+| `LINE_CHANNEL_SECRET` | LINE Developers → Messaging API 頻道 → Basic settings → Channel secret |
+| `LINE_CHANNEL_ACCESS_TOKEN` | LINE Developers → Messaging API 頻道 → Messaging API → Channel access token |
 
-1. 到 https://nodejs.org 下載並安裝「LTS」版本。
-2. 打開「終端機」（Mac）或「命令提示字元」（Windows），進入這個資料夾。
-3. 輸入 `npm install`（第一次才需要），等它跑完。
-4. 輸入 `npm run dev`。
-5. 用瀏覽器打開 http://localhost:3000 ，看到「勁丰羽球館」就成功了。
-
-## 機器人規則
-
-- 沒有寫日期 → 詢問日期
-- 沒有寫時段 → 報名整場（例如週一 18:30–22:30）；當天沒有整場（週三、週日）→ 詢問
-- 只說「早上／下午／晚上」，但符合的時段不只一個 → 詢問
-- 說「我」或沒寫名字 → 使用 LINE 名稱；一次寫好幾個名字 → 請對方一次報一位
-- 同一天、同一場、同一個名字只算一次
-- 報名、取消、查名單成功後，回覆今天起 7 天的整週名單（標題和結尾文字在 `lib/venue.js` 修改）
-- 跟報名無關的訊息不回覆；輸入「說明」可以看使用方式
+改了環境變數之後，一定要到 Deployments 按 **Redeploy** 才會生效。

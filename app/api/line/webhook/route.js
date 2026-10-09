@@ -1,6 +1,6 @@
-import { handleMessage, HELP_TEXT } from "@/lib/bot";
-import { getDisplayName, replyText, verifySignature } from "@/lib/line";
-import { supabaseRepo } from "@/lib/repo";
+import { bookingApi } from "@/lib/booking";
+import { replyText, verifySignature } from "@/lib/line";
+import { handleMessage, HELP_TEXT } from "@/lib/rental";
 import { VENUE } from "@/lib/venue";
 
 export const dynamic = "force-dynamic";
@@ -37,12 +37,7 @@ async function handleEvent(event) {
 
     if (event.type !== "message" || event.message.type !== "text") return;
 
-    const displayName = await getDisplayName(event.source);
-    const { reply } = await handleMessage(supabaseRepo, {
-      text: event.message.text,
-      userId: event.source.userId ?? null,
-      displayName,
-    });
+    const { reply } = await handleMessage(bookingApi, { text: event.message.text });
     if (reply) await replyText(event.replyToken, reply);
   } catch (error) {
     console.error("處理 LINE 訊息失敗", error);

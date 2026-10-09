@@ -2,8 +2,8 @@ import "./globals.css";
 import { VENUE } from "@/lib/venue";
 
 export const metadata = {
-  title: `${VENUE.name} 零打報名`,
-  description: `${VENUE.name} LINE 零打報名機器人`,
+  title: `${VENUE.name} 租場地`,
+  description: `${VENUE.name} LINE 租場地機器人`,
 };
 
 export default function RootLayout({ children }) {
