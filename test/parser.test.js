@@ -39,6 +39,7 @@ test("姓名與人數", () => {
   assert.equal(p("小明明天晚上2位").name, "小明");
   assert.equal(p("小明明天晚上2位").people, 2);
   assert.equal(p("今天 +3").people, 3);
+  assert.equal(p("今天整場報名兩位").name, null);
 });
 
 test("意圖", () => {

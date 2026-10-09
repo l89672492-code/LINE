@@ -20,8 +20,8 @@ test("「我今天晚上要打球」→ 週五晚上有三個時段，先詢問"
 
   const reply2 = await say("2");
   assert.match(reply2, /報名成功/);
-  assert.match(reply2, /18:30–20:30/);
-  assert.match(reply2, /小明 × 1 位/);
+  assert.match(reply2, /✅ 小明 報名成功：10\/9（五） 18:30–20:30/);
+  assert.match(reply2, /晚場：小明\(1830-2030\)/);
 });
 
 test("「我報名週五零打」→ 沒寫時段，報名整場", async () => {
@@ -37,8 +37,7 @@ test("「阿哲報名一位」→ 沒有日期，先詢問日期", async () => {
   assert.match(await say("阿哲報名一位"), /請問要報名哪一天/);
   const reply = await say("下週一");
   assert.match(reply, /報名成功/);
-  assert.match(reply, /10\/12（一）/);
-  assert.match(reply, /阿哲 × 1 位/);
+  assert.match(reply, /✅ 阿哲 報名成功：10\/12（一） 18:30–22:30/);
 });
 
 test("同一個人重複報名不會重複計算", async () => {
@@ -47,7 +46,7 @@ test("同一個人重複報名不會重複計算", async () => {
   await say("我報名週五零打");
   const reply = await say("我報名今天全場");
   assert.match(reply, /已經報名過/);
-  assert.match(reply, /共 1 人/);
+  assert.match(reply, /10\/9（五）\n晚場：小明\n/);
   assert.equal(repo.registrations.length, 1);
 });
 
@@ -55,7 +54,8 @@ test("人數會自動加總", async () => {
   const repo = createFakeRepo();
   await chat(repo, "U1", "小明")("我報名週五零打");
   const reply = await chat(repo, "U2", "阿華")("阿華今天整場兩位");
-  assert.match(reply, /共 3 人/);
+  assert.match(reply, /✅ 阿華 x2 報名成功/);
+  assert.match(reply, /晚場：小明，阿華x2/);
 });
 
 test("「我要取消今天的報名」→ 取消並更新人數", async () => {
@@ -64,8 +64,8 @@ test("「我要取消今天的報名」→ 取消並更新人數", async () => {
   const say = chat(repo);
   await say("我報名週五零打");
   const reply = await say("我要取消今天的報名");
-  assert.match(reply, /已取消報名/);
-  assert.match(reply, /剩 2 人/);
+  assert.match(reply, /已取消 小明 10\/9（五） 18:30–22:30 的報名/);
+  assert.match(reply, /10\/9（五）\n晚場：阿華x2\n/);
 });
 
 test("取消時報了兩個時段，要先問取消哪一個", async () => {
@@ -75,8 +75,8 @@ test("取消時報了兩個時段，要先問取消哪一個", async () => {
   await say("我報名今天 20:30-22:30");
   assert.match(await say("我要取消今天的報名"), /請問要取消哪一個/);
   const reply = await say("2");
-  assert.match(reply, /已取消報名/);
-  assert.match(reply, /20:30–22:30/);
+  assert.match(reply, /已取消 小明 10\/9（五） 20:30–22:30 的報名/);
+  assert.match(reply, /晚場：小明\(1830-2030\)\n/);
 });
 
 test("查不到報名時告知", async () => {
@@ -84,9 +84,9 @@ test("查不到報名時告知", async () => {
   assert.match(reply, /查不到 阿哲/);
 });
 
-test("星期六沒有零打", async () => {
-  const reply = await chat(createFakeRepo())("我明天要打球");
-  assert.match(reply, /星期六沒有零打/);
+test("當天沒有零打（測試資料裡沒有週二）", async () => {
+  const reply = await chat(createFakeRepo())("我報名週二");
+  assert.match(reply, /星期二沒有零打/);
 });
 
 test("週三沒寫時段 → 沒有整場可選，要詢問", async () => {
@@ -106,7 +106,7 @@ test("沒有 LINE 名稱又沒寫名字時，詢問名字", async () => {
   const repo = createFakeRepo();
   const say = chat(repo, "U3", null);
   assert.match(await say("我報名週五零打"), /請問報名者的名字/);
-  assert.match(await say("阿哲"), /阿哲 × 1 位/);
+  assert.match(await say("阿哲"), /✅ 阿哲 報名成功/);
 });
 
 test("一次報好幾個名字 → 詢問名字", async () => {
@@ -118,10 +118,15 @@ test("查詢名單", async () => {
   const repo = createFakeRepo();
   await chat(repo, "U1", "小明")("我報名週五零打");
   await chat(repo, "U2", "阿華")("阿華今天 20:30-22:30 兩位");
-  const reply = await chat(repo, "U9", "老闆")("今天名單");
-  assert.match(reply, /10\/9（五） 零打名單/);
-  assert.match(reply, /18:30–22:30 初中～高階 \$380｜共 1 人/);
-  assert.match(reply, /阿華 × 2/);
+  await chat(repo, "U3", "小華")("小華報名週日早上");
+  const reply = await chat(repo, "U9", "老闆")("名單");
+  assert.match(reply, /^勁 丰 羽 球 館 狂打團開打\n早場09-12/);
+  assert.match(reply, /10\/9（五）\n晚場：小明，阿華x2\(2030-2230\)\n/);
+  assert.match(reply, /10\/10（六）\n晚場：（尚無）/);
+  assert.match(reply, /10\/11（日）\n早場\(9-12\)：小華\n午場\(15-18\)：（尚無）/);
+  assert.match(reply, /10\/14（三）\n早場\(9-12\)：（尚無）（5 人開團，還差 5 人）/);
+  assert.doesNotMatch(reply, /10\/16/);
+  assert.match(reply, /垃圾請隨手幫忙丟進垃圾桶/);
 });
 
 test("已經過去的日期不能報名", async () => {
