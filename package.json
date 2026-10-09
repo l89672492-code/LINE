@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "description": "勁丰羽球館 LINE 零打報名機器人",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=20"
