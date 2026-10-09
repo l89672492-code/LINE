@@ -1,0 +1,22 @@
+{
+  "name": "jinfeng-badminton-line-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "勁丰羽球館 LINE 零打報名機器人",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}
