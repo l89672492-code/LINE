@@ -17,7 +17,7 @@
 ## 開發進度
 
 - [x] 第一步：建立專案
-- [ ] 第二步：建立 Supabase 資料庫
+- [x] 第二步：建立 Supabase 資料庫（資料表：`supabase/schema.sql`）
 - [ ] 第三步：完成報名及取消功能
 - [ ] 第四步：完成簡單管理後台
 - [ ] 第五步：串接 LINE 自動接收訊息及回覆
@@ -33,6 +33,9 @@ app/
   api/health/        健康檢查網址 /api/health
 lib/
   venue.js           場館基本資料（名稱、地址、官方 LINE）
+  supabase.js        連線到 Supabase 資料庫
+supabase/
+  schema.sql         資料庫結構（貼到 Supabase SQL Editor 執行）
 .env.example         金鑰設定範本（之後步驟會教你填）
 package.json         專案使用的套件清單
 ```
